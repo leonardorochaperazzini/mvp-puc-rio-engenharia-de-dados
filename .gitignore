@@ -1,0 +1,13 @@
+# Dados brutos (ultrapassam limite do GitHub / não versionar)
+data/
+*.csv
+*.parquet
+*.delta
+
+# Databricks / Python
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# SO
+.DS_Store
