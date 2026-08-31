@@ -39,6 +39,12 @@ crimes_raw = (
     .csv(CRIMES_CSV)
 )
 
+# Delta não aceita espaços/caracteres especiais em nomes de coluna → padroniza p/ snake_case.
+import re
+def _clean(c):
+    return re.sub(r"[ ,;{}()\n\t=]+", "_", c.strip()).lower()
+crimes_raw = crimes_raw.toDF(*[_clean(c) for c in crimes_raw.columns])
+
 crimes_raw = (
     crimes_raw
     .withColumn("_ingested_at", F.current_timestamp())

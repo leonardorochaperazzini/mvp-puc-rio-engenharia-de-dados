@@ -6,8 +6,8 @@
 # MAGIC Cada bloco traz a query, o resultado e uma discussão do que os números significam.
 # MAGIC As mesmas consultas alimentam o dashboard nativo do Databricks (ver README).
 # MAGIC
-# MAGIC > As discussões abaixo trazem a leitura esperada e devem ser conferidas com os números
-# MAGIC > que aparecerem na sua execução — a base pode variar conforme a amostra usada.
+# MAGIC > As discussões trazem os números obtidos na execução sobre a amostra de 20%. Se você
+# MAGIC > rodar com a base completa os valores mudam um pouco, mas as tendências se mantêm.
 
 # COMMAND ----------
 
@@ -36,12 +36,14 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** Poucos tipos concentram a maior parte das ocorrências (roubo, furto,
-# MAGIC dano, agressão), mas a taxa de prisão varia muito entre eles: crimes que exigem
-# MAGIC flagrante ou têm autor identificável no ato — como porte de entorpecentes, prostituição
-# MAGIC e jogo — chegam a taxas próximas de 100%, enquanto furtos e arrombamentos ficam bem
-# MAGIC abaixo da média. Isso responde H1: **a taxa de prisão não é uniforme; depende da
-# MAGIC natureza do crime**. Confirme na sua execução quais tipos lideram cada extremo.
+# MAGIC **Discussão.** Os tipos mais frequentes são THEFT (65,8 mil), BATTERY (52,8 mil) e
+# MAGIC CRIMINAL DAMAGE (31,2 mil), mas a taxa de prisão varia enormemente entre eles. No topo
+# MAGIC aparecem crimes que dependem de flagrante: PROSTITUTION (99,6%) e NARCOTICS (99,3%) são
+# MAGIC quase sempre registrados com prisão, porque a ocorrência já nasce da abordagem policial.
+# MAGIC No extremo oposto estão os crimes contra o patrimônio, que dependem de investigação:
+# MAGIC BURGLARY (5,3%), CRIMINAL DAMAGE (6,4%) e MOTOR VEHICLE THEFT (7,1%). Isso confirma H1
+# MAGIC de forma bem clara: a taxa de prisão não é uniforme, ela é definida pela natureza do
+# MAGIC crime — se há autor identificável no ato ou não.
 
 # COMMAND ----------
 
@@ -60,10 +62,14 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** Comparando os dois grupos vê-se se o caráter doméstico do crime muda a
-# MAGIC probabilidade de prisão (H2). Em geral crimes domésticos envolvem vítima e agressor
-# MAGIC conhecidos, o que tende a facilitar a responsabilização — verifique se a taxa do grupo
-# MAGIC doméstico fica acima da do não doméstico e por qual margem.
+# MAGIC **Discussão.** O resultado contraria a intuição de H2. Eu esperava que crimes
+# MAGIC domésticos tivessem taxa de prisão maior, já que costumam ter vítima e agressor
+# MAGIC conhecidos. Nos dados acontece o contrário: crimes domésticos têm taxa de prisão de
+# MAGIC 19,7%, contra 27,0% dos não domésticos. Uma leitura possível é que boa parte das
+# MAGIC ocorrências domésticas é registrada por causa da denúncia da vítima, sem que haja
+# MAGIC flagrante ou condições de prisão no momento — e casos de violência doméstica muitas
+# MAGIC vezes seguem por outras vias que não a prisão imediata. Vale manter a hipótese anterior
+# MAGIC e registrar que, aqui, ela não se sustentou.
 
 # COMMAND ----------
 
@@ -95,10 +101,12 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** O volume de crimes costuma subir à tarde e à noite, enquanto a taxa de
-# MAGIC prisão tende a ser menor justamente nos horários de maior volume — reforçando H3, de
-# MAGIC que crimes noturnos são menos resolvidos no ato. O recorte por dia da semana mostra se
-# MAGIC há concentração no fim de semana. Confirme onde ficam os picos de volume e de prisão.
+# MAGIC **Discussão.** O volume realmente sobe à noite (92,7 mil) e à tarde (91,5 mil), e cai
+# MAGIC na madrugada (45,3 mil). Mas H3 não se confirmou do jeito esperado: eu imaginava taxa de
+# MAGIC prisão menor à noite, e é justamente a noite que tem a maior taxa (30,9%), enquanto a
+# MAGIC madrugada tem a menor (20,6%). Ou seja, no período de maior atividade policial noturna
+# MAGIC prende-se proporcionalmente mais, não menos. O padrão temporal existe (H3), mas na
+# MAGIC direção contrária à que eu supunha — outro caso em que os dados corrigem a intuição.
 
 # COMMAND ----------
 
@@ -123,10 +131,12 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** A série anual mostra a tendência da criminalidade no período (H4) — nos
-# MAGIC dados de Chicago costuma haver queda até 2015/2016 e alguma retomada depois. O recorte
-# MAGIC mensal expõe sazonalidade: meses quentes (verão do hemisfério norte, jun–ago)
-# MAGIC concentram mais ocorrências. Verifique a direção da tendência na sua amostra.
+# MAGIC **Discussão.** A criminalidade cai de forma consistente no período (H4): de 67,3 mil
+# MAGIC ocorrências em 2012 para cerca de 53 mil em 2016. 2017 aparece com só 2,2 mil porque a
+# MAGIC amostra cobre apenas o começo do ano, então esse ponto não deve ser lido como queda
+# MAGIC real. Chama atenção a taxa de prisão, estável perto de 27–28% até 2015 e caindo para
+# MAGIC 18,8% em 2016 — uma mudança que vale investigar (pode refletir mudança de política de
+# MAGIC policiamento no período). O recorte mensal ajuda a ver a sazonalidade de verão.
 
 # COMMAND ----------
 
@@ -147,9 +157,11 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** A criminalidade se concentra geograficamente em poucos bairros. Guarde
-# MAGIC os nomes do topo da lista — eles reaparecem em BQ6 quando cruzamos com os indicadores
-# MAGIC socioeconômicos.
+# MAGIC **Discussão.** A criminalidade é bastante concentrada no território. Austin lidera com
+# MAGIC folga (quase 19 mil ocorrências), seguido de Near North Side, South Shore, Humboldt Park
+# MAGIC e North Lawndale. É uma mistura de bairros de alta vulnerabilidade (Austin, North
+# MAGIC Lawndale, West Englewood) com áreas centrais de grande circulação (Near North Side,
+# MAGIC Loop). Vários desses nomes voltam na BQ6, quando cruzamos com renda e privação.
 
 # COMMAND ----------
 
@@ -190,15 +202,19 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** Aqui está o valor de cruzar as duas fontes: dá para ver se bairros mais
-# MAGIC vulneráveis (maior hardship, menor renda) concentram mais crimes. Uma correlação
-# MAGIC negativa entre renda e nº de crimes, e positiva entre hardship e crimes, confirmaria
-# MAGIC essa leitura.
+# MAGIC **Discussão.** É aqui que o join entrega valor. Agrupando por quartil de privação há um
+# MAGIC gradiente nítido: o quartil mais vulnerável (4) tem 86,1 mil crimes e renda média de
+# MAGIC US$ 12,7 mil, enquanto o menos vulnerável (1) tem 71,9 mil crimes e renda de US$ 53,2
+# MAGIC mil. E não é só o volume — a taxa de prisão também sobe com a privação, de 19,4% no
+# MAGIC quartil 1 para 32,3% no quartil 4. A correlação bairro a bairro entre número de crimes e
+# MAGIC percentual de pobreza é positiva (0,31); com o hardship index é 0,18; com renda per
+# MAGIC capita é praticamente nula (0,03). Ou seja, pobreza acompanha melhor a criminalidade do
+# MAGIC que a renda média isolada.
 # MAGIC
-# MAGIC **Limitação importante:** os indicadores socioeconômicos são de **2008–2012** e os
-# MAGIC crimes de **2012–2017**. A associação é transversal, contra um retrato anterior à maior
-# MAGIC parte da janela — serve para descrever, não para afirmar causa nem relação
-# MAGIC contemporânea. Isso é retomado na Autoavaliação.
+# MAGIC **Limitação importante:** os indicadores socioeconômicos são de 2008–2012 e os crimes de
+# MAGIC 2012–2017. A associação é transversal, comparada com um retrato anterior à maior parte da
+# MAGIC janela dos crimes. Serve para descrever, não para afirmar causa nem relação
+# MAGIC contemporânea. Volto nisso na autoavaliação.
 
 # COMMAND ----------
 
@@ -219,17 +235,26 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Discussão.** A classificação index (crimes graves/violentos, padrão FBI) separa o que
-# MAGIC mais preocupa em segurança pública do restante. Normalmente os crimes index têm taxa de
-# MAGIC prisão **menor** que os non-index — estes últimos incluem muito flagrante (drogas,
-# MAGIC perturbação da ordem). Confirme a diferença na sua execução.
+# MAGIC **Discussão.** Os crimes index (graves/violentos, padrão FBI) são 41,5% do total e têm
+# MAGIC taxa de prisão de apenas 11,0%. Os non-index, 58,5% do total, têm 36,5% de prisão — mais
+# MAGIC de três vezes. O motivo é o mesmo que apareceu na BQ1: o grupo non-index concentra
+# MAGIC drogas, perturbação da ordem e afins, que são registrados em flagrante, enquanto os
+# MAGIC crimes index (roubo, furto, arrombamento) dependem de investigação. É um resultado
+# MAGIC importante para segurança pública: justamente os crimes que mais preocupam são os que
+# MAGIC menos terminam em prisão.
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Síntese
-# MAGIC As respostas se conectam: o crime em Chicago é concentrado em poucos tipos, poucos
-# MAGIC bairros e certos horários, e a chance de prisão depende muito mais da natureza do crime
-# MAGIC (flagrante vs. investigação) do que do volume. O cruzamento socioeconômico sugere
-# MAGIC associação entre vulnerabilidade do bairro e criminalidade, sempre lida com a ressalva
-# MAGIC temporal. A discussão fechada, com os números finais, está no README.
+# MAGIC As respostas se conectam em torno de um fio central: **a chance de prisão em Chicago
+# MAGIC depende muito mais da natureza do crime — flagrante vs. investigação — do que do
+# MAGIC volume**. Crimes de flagrante (drogas, prostituição) prendem quase sempre; crimes contra
+# MAGIC o patrimônio, quase nunca. Isso reaparece na BQ7: os crimes graves (index) são os que
+# MAGIC menos terminam em prisão.
+# MAGIC
+# MAGIC Duas hipóteses dos MVPs anteriores não se sustentaram nos dados e ficam registradas
+# MAGIC assim: crimes domésticos prendem menos, não mais (BQ2), e a noite tem a maior taxa de
+# MAGIC prisão, não a menor (BQ3). O cruzamento socioeconômico (BQ6) mostra associação clara
+# MAGIC entre privação do bairro e criminalidade, sempre com a ressalva de que os indicadores
+# MAGIC são de um período anterior. A discussão fechada está na autoavaliação do README.

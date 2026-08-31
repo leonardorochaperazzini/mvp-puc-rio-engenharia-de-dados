@@ -122,10 +122,20 @@ dim_ca = (
             "hardship_index", "income_quartile", "hardship_quartile")
 )
 
-unknown_ca = spark.createDataFrame(
-    [(-1, None, "Desconhecido", None, None, None, None, None, None, None, None, None)],
-    dim_ca.schema
-)
+unknown_ca = spark.sql("""
+    SELECT -1 AS community_area_key,
+           CAST(NULL AS INT)    AS community_area,
+           'Desconhecido'       AS community_area_name,
+           CAST(NULL AS DOUBLE) AS pct_housing_crowded,
+           CAST(NULL AS DOUBLE) AS pct_below_poverty,
+           CAST(NULL AS DOUBLE) AS pct_unemployed,
+           CAST(NULL AS DOUBLE) AS pct_no_highschool,
+           CAST(NULL AS DOUBLE) AS pct_dependent_age,
+           CAST(NULL AS INT)    AS per_capita_income,
+           CAST(NULL AS INT)    AS hardship_index,
+           CAST(NULL AS INT)    AS income_quartile,
+           CAST(NULL AS INT)    AS hardship_quartile
+""")
 dim_ca = dim_ca.unionByName(unknown_ca)
 dim_ca.write.mode("overwrite").option("overwriteSchema", True).saveAsTable(f"{CATALOG}.gold.dim_community_area")
 print(f"dim_community_area: {dim_ca.count()} (77 + 1 desconhecido)")

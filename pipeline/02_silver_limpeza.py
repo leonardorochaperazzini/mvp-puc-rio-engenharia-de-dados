@@ -46,24 +46,25 @@ if first.lower().startswith("_c0") or first.strip() == "" or first.lower() == "u
 
 crimes = (
     b
-    .withColumn("id", F.col("ID").cast("long"))
-    .withColumn("case_number", F.col("`Case Number`"))
-    .withColumn("occurred_at", F.to_timestamp("Date", "MM/dd/yyyy hh:mm:ss a"))
-    .withColumn("block", F.col("Block"))
-    .withColumn("iucr", F.lpad(F.trim(F.col("IUCR")), 4, "0"))
-    .withColumn("primary_type", F.trim(F.col("`Primary Type`")))
-    .withColumn("description", F.trim(F.col("Description")))
-    .withColumn("location_description", F.trim(F.col("`Location Description`")))
-    .withColumn("arrest", F.col("Arrest") == "True")
-    .withColumn("domestic", F.col("Domestic") == "True")
-    .withColumn("beat", F.col("Beat").cast("int"))
-    .withColumn("district", F.col("District").cast("int"))
-    .withColumn("ward", F.col("Ward").cast("int"))
-    .withColumn("community_area", F.col("`Community Area`").cast("int"))
-    .withColumn("fbi_code", F.trim(F.col("`FBI Code`")))
-    .withColumn("year", F.col("Year").cast("int"))
-    .withColumn("latitude", F.col("Latitude").cast("double"))
-    .withColumn("longitude", F.col("Longitude").cast("double"))
+    # Inteiros vêm como "6.0" no CSV → try_cast via double tolera malformados (retorna null).
+    .withColumn("id", F.expr("try_cast(id AS long)"))
+    .withColumn("case_number", F.col("case_number"))
+    .withColumn("occurred_at", F.to_timestamp("date", "MM/dd/yyyy hh:mm:ss a"))
+    .withColumn("block", F.col("block"))
+    .withColumn("iucr", F.lpad(F.trim(F.col("iucr")), 4, "0"))
+    .withColumn("primary_type", F.trim(F.col("primary_type")))
+    .withColumn("description", F.trim(F.col("description")))
+    .withColumn("location_description", F.trim(F.col("location_description")))
+    .withColumn("arrest", F.col("arrest") == "True")
+    .withColumn("domestic", F.col("domestic") == "True")
+    .withColumn("beat", F.expr("cast(try_cast(beat AS double) AS int)"))
+    .withColumn("district", F.expr("cast(try_cast(district AS double) AS int)"))
+    .withColumn("ward", F.expr("cast(try_cast(ward AS double) AS int)"))
+    .withColumn("community_area", F.expr("cast(try_cast(community_area AS double) AS int)"))
+    .withColumn("fbi_code", F.trim(F.col("fbi_code")))
+    .withColumn("year", F.expr("cast(try_cast(year AS double) AS int)"))
+    .withColumn("latitude", F.expr("try_cast(latitude AS double)"))
+    .withColumn("longitude", F.expr("try_cast(longitude AS double)"))
     .select(
         "id", "case_number", "occurred_at", "block", "iucr", "primary_type",
         "description", "location_description", "arrest", "domestic", "beat",

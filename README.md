@@ -95,14 +95,38 @@ As respostas, com discussão, estão no notebook `05_analise_negocio` e no dashb
 
 ---
 
+## Resultados (amostra de 20%, 291.342 ocorrências)
+
+- **BQ1** — Os tipos mais comuns são THEFT (65,8 mil), BATTERY (52,8 mil) e CRIMINAL DAMAGE
+  (31,2 mil). A taxa de prisão varia de 99,6% (PROSTITUTION) e 99,3% (NARCOTICS) até 5,3%
+  (BURGLARY). Confirma H1: a prisão depende da natureza do crime, não do volume.
+- **BQ2** — Crimes domésticos prendem **menos** (19,7%) que os não domésticos (27,0%),
+  contrariando a hipótese H2.
+- **BQ3** — A noite concentra mais crimes (92,7 mil) e também a maior taxa de prisão (30,9%);
+  a madrugada tem a menor (20,6%). O padrão temporal existe, mas ao contrário do esperado.
+- **BQ4** — Queda de 67,3 mil (2012) para ~53 mil (2016); a taxa de prisão cai de ~28% para
+  18,8% em 2016. (2017 aparece truncado na amostra.)
+- **BQ5** — Austin lidera com folga (≈19 mil), seguido de Near North Side e South Shore.
+- **BQ6** — Gradiente claro: o quartil mais vulnerável tem mais crimes (86,1 mil), menor
+  renda (US$ 12,7 mil) e maior taxa de prisão (32,3%). Correlação crimes × pobreza = 0,31.
+- **BQ7** — Crimes graves (index) são 41,5% do total mas só 11% terminam em prisão; os
+  non-index são 58,5% e prendem 36,5%.
+
+Os dois resultados que contrariam hipóteses anteriores (BQ2 e BQ3) foram mantidos e
+discutidos — os dados corrigindo a intuição é parte do valor do trabalho.
+
+---
+
 ## Autoavaliação
 
-**O que consegui.** O pipeline cobre todas as etapas pedidas: coleta (upload + API),
-modelagem em estrela sobre medallion, carga com ETL documentado, catálogo de dados (no
-markdown e na própria plataforma) e análise dividida em qualidade e resposta às perguntas.
-As sete perguntas de negócio são respondidas por SQL sobre o Data Warehouse, e as quatro
-primeiras dão continuidade às hipóteses dos MVPs anteriores, o que amarra as três etapas do
-meu trabalho.
+**O que consegui.** O pipeline roda de ponta a ponta no Databricks serverless e cobre todas
+as etapas pedidas: coleta (upload do CSV no volume + API Socrata), modelagem em estrela
+sobre medallion, carga com ETL documentado, catálogo de dados (no markdown e na própria
+plataforma via `COMMENT ON`) e análise dividida em qualidade e resposta às perguntas. As
+sete perguntas de negócio foram respondidas por SQL sobre o Data Warehouse, com os números
+na seção de Resultados. As quatro primeiras dão continuidade às hipóteses dos MVPs
+anteriores, o que amarra as três etapas do meu trabalho — e, curiosamente, duas delas (H2 e
+H3) não se confirmaram, o que rendeu boa discussão.
 
 **O que ficou parcial.** A BQ6, que cruza criminalidade com contexto socioeconômico, é a
 mais frágil por um motivo que já estava previsto no objetivo: os indicadores são de
