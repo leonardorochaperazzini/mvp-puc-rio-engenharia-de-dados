@@ -130,3 +130,35 @@ ref_iucr = spark.table(f"{CATALOG}.silver.iucr_codes").select("iucr")
 sem_iucr = crimes_iucr.join(ref_iucr, "iucr", "left_anti").count()
 print(f"Códigos IUCR nos crimes sem match na referência: {sem_iucr} "
       f"(de {crimes_iucr.count()} distintos) → tratados como is_index=False")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Relatório de qualidade persistido
+# MAGIC Grava as verificações numa tabela (`gold.data_quality_report`) — vira evidência
+# MAGIC reproduzível e é o embrião de testes automatizados de qualidade (trabalhos futuros).
+# MAGIC Distingue **problema real detectado** de **guarda defensiva que não disparou** nesta amostra.
+
+# COMMAND ----------
+
+nb = spark.table(f"{CATALOG}.bronze.crimes").count()
+ns = crimes_s.count()
+dups = (spark.table(f"{CATALOG}.bronze.crimes").groupBy("ID").count().filter("count>1").count())
+lat_null = crimes_s.filter(F.col("latitude").isNull()).count()
+fact = spark.table(f"{CATALOG}.gold.fact_crime")
+ca_unknown = fact.filter("community_area_key=-1").count()
+loc_unknown = fact.filter("location_key=-1").count()
+socio_b = spark.table(f"{CATALOG}.bronze.socioeconomic").count()
+socio_s = spark.table(f"{CATALOG}.silver.socioeconomic").count()
+
+report = spark.createDataFrame([
+    ("crimes", "duplicidade de ID", "guarda defensiva", dups, "dedupe por id (nao disparou nesta amostra)"),
+    ("crimes", "ano fora de 2012-2017", "guarda defensiva", nb - ns, "filtro de janela (nao disparou; amostra ja limpa)"),
+    ("crimes", "coordenadas invalidas/(0,0)/fora de Chicago", "problema real", lat_null, "lat/long anulados; linha mantida"),
+    ("crimes", "community area 0/nula", "problema real", ca_unknown, "mapeado p/ membro -1 em dim_community_area"),
+    ("crimes", "location description ausente", "problema real", loc_unknown, "mapeado p/ membro -1 em dim_location"),
+    ("socioeconomic", "linha agregada CHICAGO", "problema real", socio_b - socio_s, "excluida antes do join (78->77)"),
+], ["tabela", "verificacao", "natureza", "linhas_afetadas", "tratamento"])
+
+report.write.mode("overwrite").option("overwriteSchema", True).saveAsTable(f"{CATALOG}.gold.data_quality_report")
+display(report)

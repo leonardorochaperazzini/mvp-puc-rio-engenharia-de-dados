@@ -77,7 +77,9 @@ crimes = (
 
 # MAGIC %md
 # MAGIC ### Dedupe por `ID` e filtros de qualidade
-# MAGIC O release multi-arquivo da Kaggle contém IDs duplicados — mantemos 1 por `id`.
+# MAGIC Guarda defensiva: o release multi-arquivo da Kaggle é conhecido por gerar IDs
+# MAGIC duplicados. Nesta amostra de 20% a contagem removida é 0 (base já sem duplicatas),
+# MAGIC mas o `dropDuplicates` protege o grão do fato caso a base completa seja usada.
 
 # COMMAND ----------
 

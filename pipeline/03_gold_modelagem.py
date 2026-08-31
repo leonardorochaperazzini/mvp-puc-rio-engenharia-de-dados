@@ -95,8 +95,16 @@ dim_crime_type = (
     .select("crime_type_key", "iucr", "primary_type", "description", "fbi_code",
             "iucr_primary_description", "iucr_secondary_description", "is_index")
 )
+# Membro -1 (desconhecido) para IUCR sem correspondência → mantém integridade referencial.
+unknown_ct = spark.sql("""
+    SELECT -1 AS crime_type_key, 'XXXX' AS iucr, 'DESCONHECIDO' AS primary_type,
+           CAST(NULL AS STRING) AS description, CAST(NULL AS STRING) AS fbi_code,
+           CAST(NULL AS STRING) AS iucr_primary_description,
+           CAST(NULL AS STRING) AS iucr_secondary_description, FALSE AS is_index
+""")
+dim_crime_type = dim_crime_type.unionByName(unknown_ct)
 dim_crime_type.write.mode("overwrite").option("overwriteSchema", True).saveAsTable(f"{CATALOG}.gold.dim_crime_type")
-print(f"dim_crime_type: {dim_crime_type.count()} tipos")
+print(f"dim_crime_type: {dim_crime_type.count()} tipos (inclui -1 desconhecido)")
 
 # COMMAND ----------
 
@@ -215,27 +223,82 @@ print("% arrest:", round(f.filter("is_arrest").count() / f.count() * 100, 2))
 
 # COMMAND ----------
 
-comments = {
-    f"{CATALOG}.gold.fact_crime": "Fato: 1 linha por ocorrencia criminal (grao = id).",
-    f"{CATALOG}.gold.dim_date": "Dimensao de data (ano, mes, trimestre, dia da semana, fim de semana).",
-    f"{CATALOG}.gold.dim_time": "Dimensao de hora do dia (0-23) e turno.",
-    f"{CATALOG}.gold.dim_crime_type": "Dimensao de tipo de crime (IUCR, primary type, FBI code, is_index).",
-    f"{CATALOG}.gold.dim_community_area": "Dimensao de bairro (community area) + indicadores socioeconomicos e quartis.",
-    f"{CATALOG}.gold.dim_location": "Dimensao de tipo de local da ocorrencia.",
+table_comments = {
+    "bronze.crimes": "Bronze: ocorrencias criminais brutas (CSV Kaggle) + metadados de ingestao.",
+    "bronze.socioeconomic": "Bronze: indicadores socioeconomicos brutos por community area (API Socrata).",
+    "bronze.iucr_codes": "Bronze: tabela de referencia IUCR bruta (API Socrata).",
+    "silver.crimes": "Silver: crimes limpos, tipados e deduplicados.",
+    "silver.socioeconomic": "Silver: socioeconomico tipado, sem a linha agregada CHICAGO (77 areas).",
+    "silver.iucr_codes": "Silver: IUCR com codigo de 4 digitos e flag is_index.",
+    "gold.fact_crime": "Fato: 1 linha por ocorrencia criminal (grao = id).",
+    "gold.dim_date": "Dimensao de data (2012-01-01 a 2017-01-18; ano, mes, trimestre, dia da semana).",
+    "gold.dim_time": "Dimensao de hora do dia (0-23) e turno.",
+    "gold.dim_crime_type": "Dimensao de tipo de crime (IUCR, primary type, FBI code, is_index).",
+    "gold.dim_community_area": "Dimensao de bairro (community area) + indicadores socioeconomicos e quartis.",
+    "gold.dim_location": "Dimensao de tipo de local da ocorrencia.",
 }
-for tbl, cmt in comments.items():
-    spark.sql(f"COMMENT ON TABLE {tbl} IS '{cmt}'")
+for tbl, cmt in table_comments.items():
+    spark.sql(f"COMMENT ON TABLE {CATALOG}.{tbl} IS '{cmt}'")
 
-col_comments = [
-    ("gold.fact_crime", "id", "Identificador unico da ocorrencia (chave de negocio)."),
-    ("gold.fact_crime", "is_arrest", "Houve prisao (boolean)."),
-    ("gold.fact_crime", "is_domestic", "Crime domestico (boolean)."),
-    ("gold.fact_crime", "community_area_key", "FK para dim_community_area (-1 = desconhecido)."),
-    ("gold.dim_community_area", "hardship_index", "Indice de privacao 0-100 (maior = mais vulneravel)."),
-    ("gold.dim_community_area", "per_capita_income", "Renda per capita anual em USD (2008-2012)."),
-    ("gold.dim_crime_type", "is_index", "Crime index (grave/violento) conforme classificacao FBI/IUCR."),
-]
-for tbl, col, cmt in col_comments:
-    spark.sql(f"ALTER TABLE {CATALOG}.{tbl} ALTER COLUMN {col} COMMENT '{cmt}'")
+# Comentarios de coluna em TODAS as colunas gold (catalogo completo na plataforma).
+col_comments = {
+    "gold.fact_crime": {
+        "id": "Identificador unico da ocorrencia (chave de negocio).",
+        "date_key": "FK para dim_date no formato yyyyMMdd (20120101-20170118).",
+        "time_key": "FK para dim_time = hora do dia (0-23).",
+        "crime_type_key": "FK para dim_crime_type (-1 = desconhecido).",
+        "community_area_key": "FK para dim_community_area (-1 = desconhecido).",
+        "location_key": "FK para dim_location (-1 = desconhecido).",
+        "district": "Distrito policial (1-31).",
+        "beat": "Beat policial (111-2535).",
+        "ward": "Distrito eleitoral (1-50).",
+        "is_arrest": "Houve prisao (boolean).",
+        "is_domestic": "Crime domestico (boolean).",
+        "latitude": "Latitude (~41.64 a 42.02; nula se invalida).",
+        "longitude": "Longitude (~-87.93 a -87.52; nula se invalida).",
+    },
+    "gold.dim_date": {
+        "date_key": "Chave da data no formato yyyyMMdd.",
+        "date": "Data da ocorrencia (2012-01-01 a 2017-01-18).",
+        "year": "Ano (2012-2017).", "month": "Mes (1-12).",
+        "month_name": "Nome do mes (January-December).", "quarter": "Trimestre (1-4).",
+        "day": "Dia do mes (1-31).", "day_of_week": "Dia da semana (Monday-Sunday).",
+        "is_weekend": "Fim de semana (boolean).",
+    },
+    "gold.dim_time": {
+        "time_key": "Chave = hora do dia (0-23).", "hour": "Hora do dia (0-23).",
+        "shift": "Turno (Madrugada, Manha, Tarde, Noite).",
+    },
+    "gold.dim_crime_type": {
+        "crime_type_key": "Chave substituta (-1 = desconhecido).",
+        "iucr": "Codigo IUCR de 4 digitos (ex.: 0110, 0460).",
+        "primary_type": "Categoria principal (ex.: THEFT, BATTERY, NARCOTICS).",
+        "description": "Descricao detalhada do crime.", "fbi_code": "Codigo FBI (ex.: 06, 08B).",
+        "iucr_primary_description": "Descricao oficial IUCR (primaria).",
+        "iucr_secondary_description": "Descricao oficial IUCR (secundaria).",
+        "is_index": "Crime index (grave/violento) conforme classificacao FBI/IUCR.",
+    },
+    "gold.dim_community_area": {
+        "community_area_key": "Chave = numero da community area (1-77; -1 = desconhecido).",
+        "community_area": "Numero da community area (1-77).",
+        "community_area_name": "Nome do bairro (ex.: Rogers Park, Loop).",
+        "pct_housing_crowded": "% de domicilios superlotados (~1 a 16).",
+        "pct_below_poverty": "% de domicilios abaixo da pobreza (3.3 a 56.5).",
+        "pct_unemployed": "% da populacao 16+ desempregada (4.7 a 35.9).",
+        "pct_no_highschool": "% da populacao 25+ sem ensino medio.",
+        "pct_dependent_age": "% com menos de 18 ou mais de 64 anos.",
+        "per_capita_income": "Renda per capita anual em USD (8201 a 88669; base 2008-2012).",
+        "hardship_index": "Indice de privacao 1-98 (maior = mais vulneravel).",
+        "income_quartile": "Quartil de renda (1 = menor, 4 = maior).",
+        "hardship_quartile": "Quartil de privacao (1 = menor, 4 = maior).",
+    },
+    "gold.dim_location": {
+        "location_key": "Chave substituta (-1 = desconhecido).",
+        "location_description": "Tipo de local (ex.: STREET, RESIDENCE, APARTMENT).",
+    },
+}
+for tbl, cols in col_comments.items():
+    for col, cmt in cols.items():
+        spark.sql(f"ALTER TABLE {CATALOG}.{tbl} ALTER COLUMN {col} COMMENT '{cmt}'")
 
-print("Comentarios de catalogo aplicados no Unity Catalog.")
+print("Comentarios de catalogo aplicados no Unity Catalog (tabelas bronze/silver/gold + todas as colunas gold).")
