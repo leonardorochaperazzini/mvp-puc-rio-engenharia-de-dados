@@ -70,8 +70,9 @@ mvp-puc-rio-engenharia-de-dados/
    `mvp_chicago.bronze.raw`.
 5. Execute na ordem: `01` → `02` → `03` → `04` → `05`. As duas fontes de enriquecimento são
    baixadas automaticamente pela API Socrata dentro do `01`.
-6. Para o dashboard, abra o SQL Editor, cole as consultas do `05` e monte os gráficos
-   (barras para BQ1/BQ5, linha para BQ4, tabela para BQ6). Salve como Dashboard.
+6. Para o dashboard há duas opções: montar na mão no SQL Editor a partir das consultas do
+   `05`, ou rodar `python3 scripts/criar_dashboard.py` (com o Databricks CLI autenticado),
+   que cria e publica um dashboard Lakeview com os gráficos das BQ automaticamente.
 
 > **Sobre a amostra:** uso a amostra de 20% (mesma dos MVPs anteriores) para caber nos
 > limites da versão gratuita. Para rodar com a base completa (~1,45M linhas), basta subir o
