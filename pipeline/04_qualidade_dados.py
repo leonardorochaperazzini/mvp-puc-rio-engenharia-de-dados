@@ -161,4 +161,6 @@ report = spark.createDataFrame([
 ], ["tabela", "verificacao", "natureza", "linhas_afetadas", "tratamento"])
 
 report.write.mode("overwrite").option("overwriteSchema", True).saveAsTable(f"{CATALOG}.gold.data_quality_report")
+spark.sql(f"COMMENT ON TABLE {CATALOG}.gold.data_quality_report IS "
+          "'Relatorio de qualidade por verificacao: natureza (problema real x guarda defensiva), linhas afetadas e tratamento.'")
 display(report)

@@ -60,7 +60,7 @@ Socrata API ─┘        │
 | Silver — crimes | Descarte da coluna de índice do CSV; tipagem; `Arrest`/`Domestic` viram boolean; parsing da data; dedupe por `id` (guarda defensiva, 0 nesta amostra); filtro de ano (guarda defensiva, 0 nesta amostra); coordenadas inválidas anuladas (7.441 linhas). |
 | Silver — socioeconômico | Tipagem dos indicadores e **remoção da linha agregada "CHICAGO"**, que somava a cidade toda e inflaria o join. |
 | Silver — IUCR | Código padronizado para 4 dígitos (chave do join) e derivação de `is_index`. |
-| Gold | Montagem do fato e das dimensões; indicadores socioeconômicos e `is_index` incorporados às dimensões; membros "desconhecido" (chave -1) para não perder fatos sem bairro/local. |
+| Gold | Montagem do fato e das dimensões; indicadores socioeconômicos e `is_index` incorporados às dimensões; membros "desconhecido" (chave -1) em `dim_community_area`, `dim_location` e `dim_crime_type` para não perder fatos sem bairro, local ou tipo. |
 
 ## Conciliação dos joins
 

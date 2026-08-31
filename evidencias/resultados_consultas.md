@@ -10,7 +10,7 @@ Saída das consultas BQ1–BQ7 rodadas sobre `mvp_chicago.gold` no Databricks (a
 | fact_crime (linhas / ids distintos) | 291.342 / 291.342 (grão 1 por ID) |
 | Órfãos de FK | 0 |
 | Fatos com community area desconhecida (-1) | 14 |
-| dim_date / dim_time / dim_crime_type | 1.845 / 24 / 339 |
+| dim_date / dim_time / dim_crime_type | 1.845 / 24 / 340 (339 tipos + membro -1 desconhecido) |
 | dim_community_area / dim_location | 78 (77 + desconhecido) / 122 |
 | silver.socioeconomic | 77 (linha "CHICAGO" removida) |
 
